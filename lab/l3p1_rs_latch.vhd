@@ -33,6 +33,8 @@ end mc_rs_latch;
 
 architecture arch1 of mc_rs_latch is
     signal rg, sg, qa, qb : std_logic;
+    ATTRIBUTE KEEP : BOOLEAN;
+    ATTRIBUTE KEEP OF rg, sg, qa, qb : SIGNAL IS TRUE;
 begin
     rg <= r and clk;
     sg <= s and clk;
@@ -40,4 +42,3 @@ begin
     qb <= not (sg or qa);
     q <= qa;
 end arch1;
-
