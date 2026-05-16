@@ -17,7 +17,7 @@ end top;
 architecture behavioral of top is
     signal from_hsc : std_logic_vector(8 downto 0);
     signal for_lsc : std_logic;
-    signal from_lsc : std_logic_vector(1 downto 0);
+    signal from_lsc : std_logic_vector(2 downto 0);
     signal for_hex0, for_hex1 : std_logic_vector(3 downto 0);
 begin
     -- HighSpeed
@@ -28,14 +28,14 @@ begin
     or from_hsc(0));
 
     -- LowSpeed
-    u2: entity work.mc_counter_2bit port map(sw(0),for_lsc,sw(1),from_lsc);
+    u2: entity work.mc_counter_5 port map(sw(0),for_lsc,sw(1),from_lsc);
 
     -- hex0
-    u3: entity work.mc_mux4_4 port map("1110","0001","0000","1101",from_lsc, for_hex0);
+    u3: entity work.mc_mux6_4 port map("1111","1101","1110","0001","0000","1111",from_lsc, for_hex0);
     u4: entity work.mc_7seg_decoder_4bit port map(for_hex0, hex0);
 
     -- hex1
-    u5: entity work.mc_mux4_4 port map("1101","1110","0001","0000",from_lsc, for_hex1);
+    u5: entity work.mc_mux6_4 port map("1111","1111","1101","1110","0001","0000",from_lsc, for_hex1);
     u6: entity work.mc_7seg_decoder_4bit port map(for_hex1, hex1);
 
     
@@ -73,27 +73,31 @@ begin
     q <= q_temp;
 end arch1;
 
--- mc_counter_2bit
+-- mc_counter_5
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity mc_counter_2bit is
+entity mc_counter_5 is
     port(enb,clk,clr : in std_logic;
-        q : out std_logic_vector(1 downto 0));
-end mc_counter_2bit;
+        q : out std_logic_vector(2 downto 0));
+end mc_counter_5;
 
-architecture arch2 of mc_counter_2bit is
-    signal q_temp : std_logic_vector(1 downto 0);
+architecture arch2 of mc_counter_5 is
+    signal q_temp : std_logic_vector(2 downto 0);
 begin
     process(clk)
     begin
         if clk = '1' then
             if clr = '1' then
-                q_temp <= std_logic_vector(to_unsigned(0,2));
+                q_temp <= std_logic_vector(to_unsigned(0,3));
             elsif enb = '1' then
-                q_temp <= std_logic_vector(unsigned(q_temp) + to_unsigned(1,2));
+                if unsigned(q_temp) < 5 then
+                    q_temp <= std_logic_vector(unsigned(q_temp) + to_unsigned(1,3));
+                else 
+                    q_temp <= std_logic_vector(to_unsigned(0,3));
+                end if;
             end if;
         end if;
     end process;
@@ -130,25 +134,26 @@ begin
         "1000110" when "1100",
         "0100001" when "1101",
         "0000110" when "1110",
-        "0001110" when "1111",
         "1111111" when others;
 end arch3;
 
--- mc_mux4_4
+-- mc_mux6_4
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity mc_mux4_4 is
-    port(a,b,c,d : in std_logic_vector(3 downto 0);
-        s : in std_logic_vector(1 downto 0);
+entity mc_mux6_4 is
+    port(a,b,c,d,e,f : in std_logic_vector(3 downto 0);
+        s : in std_logic_vector(2 downto 0);
         q : out std_logic_vector(3 downto 0));
-end mc_mux4_4;
+end mc_mux6_4;
 
-architecture arch4 of mc_mux4_4 is
+architecture arch4 of mc_mux6_4 is
 begin
-    with s select q <= a when "00",
-    b when "01",
-    c when "10",
-    d when others;
+    with s select q <= a when "000",
+    b when "001",
+    c when "010",
+    d when "011",
+    e when "100",
+    f when others;
 end arch4;
